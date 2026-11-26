@@ -146,3 +146,34 @@ plt.tight_layout()
 # saving the 4-panel categorical chart inside OutputCharts
 plt.savefig(os.path.join(output_dir, "02_categorical_churn_drivers.png"), dpi=300)
 plt.close()
+# creating a 1x3 grid of subplots for the three numerical columns
+fig, axes = plt.subplots(1, 3, figsize=(15, 4.5))
+
+# looping through each numerical column to draw boxplots split by Churn
+for idx, col in enumerate(num_cols):
+    sns.boxplot(data=df, x="Churn", y=col, hue="Churn", legend=False, ax=axes[idx])
+    axes[idx].set_title(f"{col} Distribution by Churn", fontsize=11, fontweight="bold")
+    axes[idx].set_xlabel("Customer Churned?")
+    axes[idx].set_ylabel(col)
+
+plt.tight_layout()
+# saving the numerical boxplots inside OutputCharts
+plt.savefig(os.path.join(output_dir, "03_numerical_boxplots.png"), dpi=300)
+plt.close()
+
+
+# making a copy of the numerical columns to calculate correlations safely
+corr_df = df[num_cols].copy()
+# converting 'Churn' into binary (1 for Yes, 0 for No) so it can be included in the heatmap
+corr_df["Churn_Binary"] = df["Churn"].map({"Yes": 1, "No": 0})
+# setting the figure size for the heatmap
+plt.figure(figsize=(6.5, 5))
+# plotting the correlation matrix with exact values shown inside each cell
+sns.heatmap(corr_df.corr(), annot=True, fmt=".2f", cmap="coolwarm", vmin=-1, vmax=1, linewidths=0.5)
+plt.title("Correlation Matrix: Numerical Features & Churn", fontsize=11, fontweight="bold")
+plt.tight_layout()
+# saving the correlation heatmap inside OutputCharts
+plt.savefig(os.path.join(output_dir, "04_correlation_heatmap.png"), dpi=300)
+plt.close()
+
+print(f"EDA Complete! All 4 charts saved inside '{output_dir}/'.")
