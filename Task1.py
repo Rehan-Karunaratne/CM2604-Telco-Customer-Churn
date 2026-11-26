@@ -80,3 +80,69 @@ print(df[df["TotalCharges_num"].isnull()][["customerID", "tenure", "MonthlyCharg
 df["TotalCharges"] = df["TotalCharges_num"]
 # Drops the temporary helper column so the DataFrame structure stays clean
 df.drop(columns=["TotalCharges_num"], inplace=True)
+
+# TASK 1.4 TARGET CLASS DISTRIBUTION
+print("\n" + "=" * 50)
+print("TARGET CLASS DISTRIBUTION (CHURN)")
+print("=" * 50)
+# counting the number of customers who churned vs stayed
+churn_counts = df["Churn"].value_counts()
+# calculating the percentage of each class to check for class imbalance
+churn_pct = df["Churn"].value_counts(normalize=True) * 100
+
+# looping through both classes ('No' and 'Yes') to print counts and percentages
+for label in churn_counts.index:
+    print(f"Churn = {label}: {churn_counts[label]} customers ({churn_pct[label]:.2f}%)")
+
+# TASK 1.5 NUMERICAL SUMMARY STATISTICS
+print("\n" + "=" * 50)
+print("NUMERICAL FEATURES SUMMARY STATISTICS")
+print("=" * 50)
+# listing the three continuous numerical columns in the dataset
+num_cols = ["tenure", "MonthlyCharges", "TotalCharges"]
+# printing count, mean, std, min, quartiles, and max rounded to 2 decimal places
+print(df[num_cols].describe().round(2))
+
+# TASK 1.6 visualizing the distribution of numerical features
+print("\n" + "=" * 50)
+print("GENERATING AND SAVING EDA CHARTS")
+print("=" * 50)
+
+# setting the figure size for the bar chart
+plt.figure(figsize=(6, 4))
+# drawing a countplot to compare 'No' vs 'Yes' churn counts
+ax = sns.countplot(data=df, x="Churn", hue="Churn", legend=False)
+# adding exact customer count labels on top of each bar
+for container in ax.containers:
+    ax.bar_label(container, fmt="%d", padding=3)
+# adding title and axis labels
+plt.title("Customer Churn Class Distribution", fontsize=12, fontweight="bold")
+plt.xlabel("Customer Churned?")
+plt.ylabel("Number of Customers")
+# expanding y-axis height slightly so bar labels fit cleanly
+plt.ylim(0, churn_counts.max() * 1.12)
+plt.tight_layout()
+# saving the chart inside the OutputCharts folder
+plt.savefig(os.path.join(output_dir, "01_churn_distribution.png"), dpi=300)
+plt.close()
+
+# selecting four key categorical features linked to customer churn
+cat_features = ["Contract", "InternetService", "PaymentMethod", "TechSupport"]
+# creating a 2x2 grid of subplots
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+# flattening the 2D grid into a 1D list for easy looping
+axes = axes.flatten()
+
+# looping through each categorical feature to plot churn breakdown
+for idx, col in enumerate(cat_features):
+    sns.countplot(data=df, x=col, hue="Churn", ax=axes[idx])
+    axes[idx].set_title(f"Churn Breakdown by {col}", fontsize=11, fontweight="bold")
+    axes[idx].set_xlabel("")
+    axes[idx].set_ylabel("Customer Count")
+    # tilting x-axis labels slightly so long category names do not overlap
+    axes[idx].tick_params(axis="x", rotation=15)
+
+plt.tight_layout()
+# saving the 4-panel categorical chart inside OutputCharts
+plt.savefig(os.path.join(output_dir, "02_categorical_churn_drivers.png"), dpi=300)
+plt.close()
